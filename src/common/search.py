@@ -52,6 +52,10 @@ def search_cves(appctx: ApplicationContext, opts: SearchOptions):
         if opts.epssPercLt:
             query = query.filter(cast(cve_table.data['metrics']['epss']['percentile'].astext, Numeric) < opts.epssPercLt)
 
+        # filter by presense of known_exploited_vulnerabilities
+        if opts.exploitable:
+            query = query.filter(cve_table.data.has_key('cisaExploitAdd'))
+
         # filter by the cve IDS, either directly specified in the search options
         if opts.cveId:
             cve_ids = list(map(lambda cve_id: cve_id.upper(), set(opts.cveId)))
@@ -94,6 +98,10 @@ def search_cves(appctx: ApplicationContext, opts: SearchOptions):
             )
             query = query.filter(qry_cvss_severity_cond)
 
+        # add filter condition on cvss V4 severity
+        if opts.cvssV4Severity:
+            query = query.filter(cve_table.data['metrics']['cvssMetricV40'].contains([{"cvssData": {"baseSeverity": opts.cvssV4Severity.value.upper()}}]))
+
         # add filter condition on CWE ID
         if opts.cweId:
             cwe_ids = list(map(lambda cwe: re.sub('^\D*','CWE-', cwe), opts.cweId))
@@ -113,6 +121,12 @@ def search_cves(appctx: ApplicationContext, opts: SearchOptions):
                     expression.and_(*[cve_table.data['metrics']['cvssMetricV31'].contains(cond)
                                     for cond in get_cvss_metric_conditions('CVSS:3.1/' + opts.cvssV3Metrics, 'V31')]),
                 )
+            )
+
+        if opts.cvssV4Metrics:
+            query = query.filter(
+                expression.and_(*[cve_table.data['metrics']['cvssMetricV40'].contains(cond)
+                                for cond in get_cvss_metric_conditions('CVSS:4.0/' + opts.cvssV4Metrics, 'V40')])
             )
 
         # add the pagination

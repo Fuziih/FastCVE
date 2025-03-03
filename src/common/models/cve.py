@@ -13,6 +13,7 @@ from pydantic import BaseModel, Extra, Field, confloat, constr
 from .cvss_v2 import CveCvssDataModel as CveCvssDataV2
 from .cvss_v30 import CveCvssDataModel as CveCvssDataV30
 from .cvss_v31 import CveCvssDataModel as CveCvssDataV31
+from .cvss_v40 import CveCvssDataModel as CveCvssDataV40
 
 
 class Type(Enum):
@@ -32,7 +33,7 @@ class Reference(BaseModel):
     class Config:
         extra = Extra.forbid
 
-    url: constr(regex=r'^(ftp|http)s?://\S+$', max_length=500)
+    url: str
     source: Optional[str] = None
     tags: Optional[List[str]] = None
 
@@ -127,6 +128,14 @@ class CvssV31(BaseModel):
         None, description='CVSS subscore.'
     )
 
+class CvssV40(BaseModel):
+    class Config:
+        extra = Extra.forbid
+
+    source: str
+    type: Type
+    cvssData: CveCvssDataV40
+
 
 class Epss(BaseModel):
     class Config:
@@ -161,6 +170,7 @@ class Metrics(BaseModel):
     class Config:
        extra = Extra.forbid
 
+    cvssMetricV40: Optional[List[CvssV40]] = Field(None, description='CVSS V4.0 score.')
     cvssMetricV31: Optional[List[CvssV31]] = Field(None, description='CVSS V3.1 score.')
     cvssMetricV30: Optional[List[CvssV30]] = Field(None, description='CVSS V3.0 score.')
     cvssMetricV2: Optional[List[CvssV2]] = Field(None, description='CVSS V2.0 score.')
@@ -177,7 +187,7 @@ class Config(BaseModel):
 
 class CveItem(BaseModel):
     class Config:
-        extra = Extra.forbid
+        extra = Extra.ignore
 
     id: constr(regex=r'^CVE-[0-9]{4}-[0-9]{4,}$')
     sourceIdentifier: Optional[str] = None
@@ -192,7 +202,7 @@ class CveItem(BaseModel):
     cisaRequiredAction: Optional[str] = None
     cisaVulnerabilityName: Optional[str] = None
     descriptions: List[LangString] = Field(..., min_items=1)
-    references: List[Reference] = Field(..., max_items=500, min_items=0)
+    references: List[Reference] = Field(..., max_items=2000, min_items=0)
     metrics: Optional[Metrics] = Field(
         None, description='Metric scores for a vulnerability as found on NVD.'
     )

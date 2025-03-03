@@ -40,7 +40,7 @@ def search(appctx: ApplicationContext, opts: SearchOptions) -> any:
 
 
 # ------------------------------------------------------------------------------
-@router.get("/cve", name="Search CVE", response_model=CveOutput)
+@router.get("/cve", name="Search CVE", response_model=CveOutput, response_model_exclude_unset=True)
 async def search_cve(cmn_opts: SearchInputCommon = Depends(SearchInputCommon),
                      cve_opts: SearchInputCve = Depends(SearchInputCve),
                      appctx: ApplicationContext = Depends(get_app_cntxt),
@@ -63,12 +63,15 @@ async def search_cve(cmn_opts: SearchInputCommon = Depends(SearchInputCommon),
             pubEndDate=cve_opts.pub_end_date,
             cvssV2Severity=cve_opts.cvss_v2_severity,
             cvssV3Severity=cve_opts.cvss_v3_severity,
+            cvssV4Severity=cve_opts.cvss_v4_severity,
             cvssV2Metrics=cve_opts.cvss_v2_metrics,
             cvssV3Metrics=cve_opts.cvss_v3_metrics,
+            cvssV4Metrics=cve_opts.cvss_v4_metrics,
             epssScoreGt=cve_opts.epss_Score_Gt,
             epssScoreLt=cve_opts.epss_Score_Lt,
             epssPercGt=cve_opts.epss_Perc_Gt,
             epssPercLt=cve_opts.epss_Perc_Lt,
+            exploitable=cve_opts.exploitable,
             vulnerable=cve_opts.vulnerable,
             days=cve_opts.days
         )
@@ -79,7 +82,7 @@ async def search_cve(cmn_opts: SearchInputCommon = Depends(SearchInputCommon),
 
 
 # ------------------------------------------------------------------------------
-@router.get("/cpe", name="Search CPE", response_model=CpeOutput)
+@router.get("/cpe", name="Search CPE", response_model=CpeOutput, response_model_exclude_unset=True)
 async def search_cpe(cmn_opts: SearchInputCommon = Depends(SearchInputCommon),
                      cpe_opts: SearchInputCpe = Depends(SearchInputCpe),
                      appctx: ApplicationContext = Depends(get_app_cntxt),
